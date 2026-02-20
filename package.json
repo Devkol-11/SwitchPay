@@ -1,0 +1,40 @@
+{
+        "name": "payment-orchestrator",
+        "version": "1.0.0",
+        "description": "",
+        "main": "index.js",
+        "scripts": {
+                "dev": "tsx watch backend/src/app/server.ts",
+                "build": "tsc",
+                "start": "node dist/app/server.js",
+                "db:client": "prisma generate",
+                "db:migrate": "prisma migrate dev",
+                "db:seed": "ts-node prisma/seed.ts"
+        },
+        "keywords": [],
+        "author": "",
+        "license": "ISC",
+        "packageManager": "pnpm@10.30.0",
+        "dependencies": {
+                "@fastify/cors": "^11.2.0",
+                "@fastify/env": "^5.0.3",
+                "@fastify/sensible": "^6.0.4",
+                "@prisma/adapter-pg": "^7.4.1",
+                "@prisma/client": "^7.4.1",
+                "bcryptjs": "^3.0.3",
+                "fastify": "^5.7.4",
+                "ioredis": "^5.9.3",
+                "stripe": "^20.3.1",
+                "uuid": "^13.0.0",
+                "zod": "^4.3.6"
+        },
+        "devDependencies": {
+                "@types/bcryptjs": "^3.0.0",
+                "@types/node": "^25.3.0",
+                "eslint": "^10.0.0",
+                "prettier": "^3.8.1",
+                "prisma": "^7.4.1",
+                "tsx": "^4.21.0",
+                "typescript": "^5.9.3"
+        }
+}
