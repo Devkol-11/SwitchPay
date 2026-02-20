@@ -4,11 +4,11 @@
         "description": "",
         "main": "index.js",
         "scripts": {
-                "dev": "tsx watch backend/src/app/server.ts",
+                "dev": "tsx watch src/server.ts",
                 "build": "tsc",
-                "start": "node dist/app/server.js",
+                "start": "node dist/server.js",
                 "db:client": "prisma generate",
-                "db:migrate": "prisma migrate dev",
+                "db:migrate:dev": "prisma migrate dev",
                 "db:seed": "ts-node prisma/seed.ts"
         },
         "keywords": [],
@@ -16,6 +16,7 @@
         "license": "ISC",
         "packageManager": "pnpm@10.30.0",
         "dependencies": {
+                "@efobi/paystack": "^0.10.5",
                 "@fastify/cors": "^11.2.0",
                 "@fastify/env": "^5.0.3",
                 "@fastify/sensible": "^6.0.4",

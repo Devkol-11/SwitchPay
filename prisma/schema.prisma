@@ -5,14 +5,13 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
 }
-
 
 enum PaymentStatus {
   PENDING
@@ -34,27 +33,59 @@ model Merchant {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  payments      Payment[]
+  payments          Payment[]
+  merchantProviders MerchantProvider[] 
 
   @@index([name])
 }
 
 model Payment {
-  id               String          @id @default(uuid())
-  merchantId       String
-  amount           Int
-  currency         String
-  status           PaymentStatus   @default(PENDING)
-  provider         PaymentProvider
-  providerRef      String?
-  idempotencyKey   String
+  id             String          @id @default(uuid())
+  merchantId     String
+  amount         Int
+  currency       String
+  status         PaymentStatus   @default(PENDING)
+  provider       PaymentProvider?
+  attempts       PaymentAttempt[]
+  idempotencyKey String
 
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
-  merchant         Merchant        @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  merchant       Merchant        @relation(fields: [merchantId], references: [id], onDelete: Cascade)
 
   @@unique([merchantId, idempotencyKey])
   @@index([status])
+  @@index([provider])
+}
+
+model MerchantProvider {
+  id         String          @id @default(uuid())
+  merchantId String
+  provider   PaymentProvider
+  priority   Int
+  enabled    Boolean         @default(true)
+
+  merchant   Merchant        @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@unique([merchantId, provider])
+  @@index([merchantId])
+}
+
+model PaymentAttempt {
+  id           String          @id @default(uuid())
+  paymentId    String
+  provider     PaymentProvider
+  providerRef  String?
+  status       PaymentStatus   @default(PENDING)
+  errorCode    String?
+  errorMessage String?
+
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  payment      Payment         @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([paymentId])
   @@index([provider])
 }
