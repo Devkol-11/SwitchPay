@@ -2,24 +2,19 @@ import { PaymentProvider } from '../../generated/prisma';
 import { IPaymentProvider } from './base/provider.interface';
 import { StripeProvider } from './stripe/stripe.provider';
 import { PaystackProvider } from './paystack/paystack.provider';
+import { FlutterwaveProvider } from './flutterwave/flutterwave.provider';
 
 export class ProviderFactory {
-        private static providers: Map<PaymentProvider, IPaymentProvider> = new Map();
-
-        static getProvier(name: PaymentProvider): IPaymentProvider {
-                if (!this.providers.has(name)) {
-                        switch (name) {
-                                case PaymentProvider.STRIPE:
-                                        this.providers.set(name, new StripeProvider());
-                                        break;
-
-                                case PaymentProvider.PAYSTACK:
-                                        this.providers.set(name, new PaystackProvider());
-                                        break;
-                                default:
-                                        throw new Error(`PROVIDER FOR ${name} NOT SET`);
-                        }
+        static getProvider(type: PaymentProvider, secretKey: string, publicKey?: string): IPaymentProvider {
+                switch (type) {
+                        case PaymentProvider.STRIPE:
+                                return new StripeProvider(secretKey);
+                        case PaymentProvider.PAYSTACK:
+                                return new PaystackProvider(secretKey);
+                        case PaymentProvider.FLUTTERWAVE:
+                                return new FlutterwaveProvider(secretKey, publicKey);
+                        default:
+                                throw new Error('Unsupported provider');
                 }
-                return this.providers.get(name)!;
         }
 }

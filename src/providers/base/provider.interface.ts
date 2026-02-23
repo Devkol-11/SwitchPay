@@ -18,16 +18,15 @@ export interface ProviderResponse {
 }
 
 // Normalized Webhook Result
-export interface WebhookVerificationResult {
-        isValid: boolean;
-        providerReference: string;
+export interface WebhookResult {
+        paymentId: string; // Our internal ID (the reference we sent)
         status: PaymentStatus;
-        amount?: number;
+        rawResponse: any;
 }
 
 export interface IPaymentProvider {
         /**
-         * The name of the provider (STRIPE, PAYSTACK)
+         * The name of the provider (STRIPE, PAYSTACK , FLUTTERWAVE)
          */
         readonly name: PaymentProvider;
 
@@ -44,5 +43,5 @@ export interface IPaymentProvider {
         /**
          * Handle incoming webhooks and map them to internal statuses
          */
-        handleWebhook(payload: any, signature: string): Promise<WebhookVerificationResult>;
+        verifyWebhook(payload: any, signature: string, secret: string): Promise<WebhookResult>;
 }

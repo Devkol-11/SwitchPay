@@ -23,6 +23,7 @@ enum PaymentStatus {
 enum PaymentProvider {
   STRIPE
   PAYSTACK
+  FLUTTERWAVE
 }
 
 model Merchant {
@@ -44,6 +45,8 @@ model Payment {
   merchantId     String
   amount         Int
   currency       String
+  cardBin     String
+  cardCountry  String
   status         PaymentStatus   @default(PENDING)
   provider       PaymentProvider?
   attempts       PaymentAttempt[]
@@ -63,6 +66,9 @@ model MerchantProvider {
   id         String          @id @default(uuid())
   merchantId String
   provider   PaymentProvider
+  encryptedApiKey  String
+  encryptedPublicKey  String?
+  feeStructure   Json?
   priority   Int
   enabled    Boolean         @default(true)
 
