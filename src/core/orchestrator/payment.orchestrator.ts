@@ -72,7 +72,7 @@ export class PaymentOrchestrator {
                                         );
                                         continue; // Skip to the next provider in the route
                                 }
-                                const secretKey = decrypt(config!.encryptedApiKey); //----------------
+                                const secretKey = decrypt(config!.encryptedApiKey); 
 
                                 let publicKey: string | undefined = config.encryptedPublicKey
                                         ? decrypt(config.encryptedPublicKey)

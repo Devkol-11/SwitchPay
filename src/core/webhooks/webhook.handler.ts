@@ -4,8 +4,7 @@ import { dbClient } from '../../infra/database/prisma';
 
 export class WebhookHandler {
         async handle(providerName: string, payload: any, signature: string) {
-                // 1. Find the attempt to identify the merchant
-                // Most providers send our reference (attemptId) in the payload
+                // Find the attempt to identify the merchant
                 const attemptId = this.extractAttemptId(providerName, payload);
 
                 const attempt = await dbClient.paymentAttempt.findUnique({
@@ -17,17 +16,17 @@ export class WebhookHandler {
 
                 if (!attempt) throw new Error('Payment attempt not found for this webhook');
 
-                // 2. Get the provider's config & decrypt the secret
+                // Get the provider's config & decrypt the secret
                 const config = attempt.payment.merchant.merchantProviders.find(
                         (p) => p.provider === providerName
                 );
                 const secretKey = decrypt(config!.encryptedApiKey);
 
-                // 3. Ask the Provider to verify the signature (Security!)
+                // Ask the Provider to verify the signature
                 const provider = ProviderFactory.getProvider(config!.provider, secretKey);
                 const result = await provider.verifyWebhook(payload, signature, secretKey);
 
-                // 4. Update the Database (The State Machine)
+                //  Update the Database via Transaction to ensure Atomicity
                 await dbClient.$transaction([
                         dbClient.paymentAttempt.update({
                                 where: { id: attempt.id },

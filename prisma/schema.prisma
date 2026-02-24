@@ -27,17 +27,68 @@ enum PaymentProvider {
 }
 
 model Merchant {
-  id            String   @id @default(uuid())
+  id            String    @id @default(uuid())
   name          String
-  apiKeyHash    String   @unique
-  webhookSecret String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
+  email         String    @unique
+  passwordHash  String    
+  role          Role      @default(MERCHANT)
+  
+  // Security
+  isVerified    Boolean   @default(false)
+  webhookSecret String?   
+  
+  // Relations
+  refreshTokens RefreshToken[]
+  apiKeys           ApiKey[] 
+  merchantProviders MerchantProvider[]
   payments          Payment[]
-  merchantProviders MerchantProvider[] 
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   @@index([name])
+}
+
+model RefreshToken {
+  id          String   @id @default(uuid())
+  token       String   @unique // Hashed or UUID
+  userId      String
+  merchant    Merchant @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Rotation tracking
+  isUsed      Boolean  @default(false)
+  isRevoked   Boolean  @default(false)
+  
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+}
+
+model ApiKey {
+  id           String    @id @default(uuid())
+  merchantId   String
+  keyHash      String    @unique
+  
+  // Environment Segregation
+  mode         ApiMode   @default(TEST) // TEST or LIVE
+  
+  // Metadata for the merchant dashboard
+  name         String?   // e.g. "Mobile App Key"
+  lastUsedAt   DateTime?
+  isActive     Boolean   @default(true)
+  
+  merchant     Merchant  @relation(fields: [merchantId], references: [id])
+}
+
+enum ApiMode {
+  TEST
+  LIVE
+}
+
+enum Role {
+  ADMIN
+  MERCHANT
 }
 
 model Payment {
