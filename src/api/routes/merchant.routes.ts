@@ -6,9 +6,11 @@ import {
         RegisterMerchantInput,
         LoginMerchantSchema,
         LoginMerchantInput,
-        GenerateApiKeySchema
+        GenerateApiKeySchema,
+        GenerateApiKeyInput
 } from '../schemas/merchant.schemas';
 import { HTTP_STATUS } from '../../utils/http.statusCodes';
+import { authenticateMerchant } from '../../hooks/auth.hook';
 
 export default async function merchantRoutes(fastify: FastifyInstance) {
         fastify.post(
@@ -52,12 +54,12 @@ export default async function merchantRoutes(fastify: FastifyInstance) {
                 {
                         schema: {
                                 body: GenerateApiKeySchema
-                        }
+                        },
+                        preHandler: [authenticateMerchant]
                 },
                 async (request, reply) => {
-                        // Assume auth middleware already attached merchant to request
-                        const { id } = (request as any).merchant;
-                        const { mode, name } = request.body as any;
+                        const id = request.merchant.id;
+                        const { mode, name } = request.body as GenerateApiKeyInput;
 
                         const result = await MerchantService.generateNewApiKey(id, mode as ApiMode, name);
                         return reply.code(HTTP_STATUS.CREATED).send(result);

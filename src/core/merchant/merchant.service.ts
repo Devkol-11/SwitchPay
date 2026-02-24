@@ -3,6 +3,7 @@ import { MerchantRepo } from './merchant.repo';
 import { MerchantUtils } from './merchant.utils';
 import { ApiMode } from '../../../generated/prisma';
 import { UnauthorizedError, ConflictError, InvalidTokenError, TokenReuseError } from './merchant.errors';
+import { MerchantRegisteredEvent } from './merchant.events';
 
 export class MerchantService {
         /**
@@ -22,6 +23,11 @@ export class MerchantService {
                         passwordHash: hashedPassword,
                         webhookSecret,
                         isVerified: false
+                });
+
+                const event = new MerchantRegisteredEvent({
+                        merchantId: merchant.id,
+                        merchantEmail: merchant.email
                 });
 
                 // [EVENT: EMIT_WELCOME_EMAIL] - Trigger welcome flow here
