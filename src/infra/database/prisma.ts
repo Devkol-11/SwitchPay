@@ -1,12 +1,20 @@
 import { PrismaClient } from '../../../generated/prisma';
-
+import { PrismaPg } from '@prisma/adapter-pg';
+import { config } from '../env/env';
 export class DatabaseProvider {
         static instance: DatabaseProvider | null;
         private client: PrismaClient;
+        private adapter: PrismaPg;
         private isConnected: boolean;
 
         private constructor() {
-                this.client = new PrismaClient();
+                const connectionString = config.DATABASE_URL;
+                console.log('DB CONNECTION STRING : ', connectionString);
+                if (!connectionString) {
+                        throw new Error('DATABASE URL IS NOT DEFINED');
+                }
+                this.adapter = new PrismaPg({ connectionString });
+                this.client = new PrismaClient({ adapter: this.adapter });
                 this.isConnected = false;
         }
 

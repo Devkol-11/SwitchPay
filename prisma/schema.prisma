@@ -13,72 +13,31 @@ datasource db {
   provider = "postgresql"
 }
 
+// --- ENUMS ---
+
 enum PaymentStatus {
   PENDING
   PROCESSING
   SUCCEEDED
   FAILED
+  REVERSED // Essential for handling refunds/chargebacks
 }
 
 enum PaymentProvider {
   STRIPE
   PAYSTACK
   FLUTTERWAVE
+  INTERSWITCH
+  MONNIFY 
+  KORA
+  REMITA
 }
 
-model Merchant {
-  id            String    @id @default(uuid())
-  name          String
-  email         String    @unique
-  passwordHash  String    
-  role          Role      @default(MERCHANT)
-  
-  // Security
-  isVerified    Boolean   @default(false)
-  webhookSecret String?   
-  
-  // Relations
-  refreshTokens RefreshToken[]
-  apiKeys           ApiKey[] 
-  merchantProviders MerchantProvider[]
-  payments          Payment[]
-
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  @@index([name])
-}
-
-model RefreshToken {
-  id          String   @id @default(uuid())
-  token       String   @unique // Hashed or UUID
-  userId      String
-  merchant    Merchant @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  // Rotation tracking
-  isUsed      Boolean  @default(false)
-  isRevoked   Boolean  @default(false)
-  
-  expiresAt   DateTime
-  createdAt   DateTime @default(now())
-
-  @@index([userId])
-}
-
-model ApiKey {
-  id           String    @id @default(uuid())
-  merchantId   String
-  keyHash      String    @unique
-  
-  // Environment Segregation
-  mode         ApiMode   @default(TEST) // TEST or LIVE
-  
-  // Metadata for the merchant dashboard
-  name         String?   // e.g. "Mobile App Key"
-  lastUsedAt   DateTime?
-  isActive     Boolean   @default(true)
-  
-  merchant     Merchant  @relation(fields: [merchantId], references: [id])
+enum PaymentChannel { 
+  CARD
+  BANK_TRANSFER
+  USSD
+  MOBILE_MONEY
 }
 
 enum ApiMode {
@@ -91,39 +50,113 @@ enum Role {
   MERCHANT
 }
 
+// --- MODELS ---
+
+model Merchant {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  passwordHash  String
+  role          Role      @default(MERCHANT)
+  
+  // Security
+  isVerified    Boolean   @default(false)
+  webhookSecret String?   
+  
+  // Relations
+  refreshTokens      RefreshToken[]
+  passwordResetTokens PasswordResetToken[] 
+  apiKeys            ApiKey[] 
+  merchantProviders  MerchantProvider[]
+  payments           Payment[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([name])
+}
+
+model PasswordResetToken { 
+  id         String   @id @default(uuid())
+  tokenHash  String   @unique
+  used       Boolean
+  expiresAt  DateTime
+  merchantId String
+  merchant   Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+}
+
+model RefreshToken {
+  id         String   @id @default(uuid())
+  token      String   @unique 
+  userId     String
+  merchant   Merchant @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  isUsed     Boolean  @default(false)
+  isRevoked  Boolean  @default(false)
+  
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+}
+
+model ApiKey {
+  id          String    @id @default(uuid())
+  merchantId  String
+  keyHash     String    @unique
+  keyPreview  String    // To show "sk_live_...4a2b" in dashboard
+  
+  mode        ApiMode   @default(TEST) 
+  name        String?   
+  lastUsedAt  DateTime?
+  isActive    Boolean   @default(true)
+  
+  merchant    Merchant  @relation(fields: [merchantId], references: [id])
+}
+
 model Payment {
-  id             String          @id @default(uuid())
+  id             String         @id @default(uuid())
   merchantId     String
-  amount         Int
-  currency       String
-  cardBin     String
-  cardCountry  String
-  status         PaymentStatus   @default(PENDING)
+  amount         Int            // Minor units (kobo)
+  currency       String         @default("NGN")
+  
+  // Intelligence Enrichment 
+  channel        PaymentChannel @default(CARD)
+  cardBin        String?        // First 6-8 digits
+  cardCountry    String?
+  bankCode       String?        // e.g. "058" for GTB
+  telcoNetwork   String?        // e.g. "MTN" (Essential for USSD Routing)
+  
+  status         PaymentStatus  @default(PENDING)
   provider       PaymentProvider?
-  attempts       PaymentAttempt[]
   idempotencyKey String
+  
+  metadata       Json?          
 
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
-  merchant       Merchant        @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  attempts       PaymentAttempt[]
+  merchant       Merchant       @relation(fields: [merchantId], references: [id], onDelete: Cascade)
 
   @@unique([merchantId, idempotencyKey])
   @@index([status])
   @@index([provider])
+  @@index([bankCode]) // Fast lookup for BIN/Bank Routing analytics
 }
 
 model MerchantProvider {
-  id         String          @id @default(uuid())
-  merchantId String
-  provider   PaymentProvider
-  encryptedApiKey  String
-  encryptedPublicKey  String?
-  feeStructure   Json?
-  priority   Int
-  enabled    Boolean         @default(true)
+  id                 String          @id @default(uuid())
+  merchantId         String
+  provider           PaymentProvider
+  encryptedApiKey    String
+  encryptedPublicKey String?
+  feeStructure       Json?           // Supports Cost Optimization 
+  priority           Int             @default(1)
+  enabled            Boolean         @default(true)
 
-  merchant   Merchant        @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  merchant           Merchant        @relation(fields: [merchantId], references: [id], onDelete: Cascade)
 
   @@unique([merchantId, provider])
   @@index([merchantId])
@@ -133,10 +166,13 @@ model PaymentAttempt {
   id           String          @id @default(uuid())
   paymentId    String
   provider     PaymentProvider
-  providerRef  String?
+  providerRef  String?         // External reference for Polling
   status       PaymentStatus   @default(PENDING)
+  
+  // Performance Engine Data 
   errorCode    String?
   errorMessage String?
+  latencyMs    Int?            // Recorded to detect slow/degraded PSPs
 
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
@@ -145,4 +181,13 @@ model PaymentAttempt {
 
   @@index([paymentId])
   @@index([provider])
+}
+
+
+model GlobalProviderConfig {
+  id          String          @id @default(uuid())
+  provider    PaymentProvider @unique
+  baseWeight  Int             @default(100) // 0-100 score
+  isDown      Boolean         @default(false)
+  updatedAt   DateTime        @updatedAt
 }

@@ -4,8 +4,8 @@ import {
         CreatePaymentParams,
         ProviderResponse,
         WebhookResult
-} from '../base/provider.interface';
-import { PaymentProvider, PaymentStatus } from '../../../generated/prisma';
+} from '../../../base/provider.interface.js';
+import { PaymentProvider, PaymentStatus } from '../../../../../generated/prisma/enums.js';
 import crypto from 'node:crypto';
 
 export class PaystackProvider implements IPaymentProvider {

@@ -1,7 +1,7 @@
 import { PaymentStatus } from '../../../generated/prisma';
-import { ProviderFactory } from '../../providers/provider.factory';
-import { decrypt } from '../../utils/encryption';
-import { dbClient } from '../../infra/database/prisma';
+import { ProviderFactory } from '../../providers/provider.factory.js';
+import { decrypt } from '../../utils/encryption.js';
+import { dbClient } from '../../infra/database/prisma.js';
 
 export class ReconciliationService {
         /**

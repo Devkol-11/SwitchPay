@@ -1,8 +1,8 @@
 import { PaymentProvider } from '../../generated/prisma';
 import { IPaymentProvider } from './base/provider.interface';
-import { StripeProvider } from './stripe/stripe.provider';
-import { PaystackProvider } from './paystack/paystack.provider';
-import { FlutterwaveProvider } from './flutterwave/flutterwave.provider';
+import { StripeProvider } from './international/stripe/stripe.provider';
+import { PaystackProvider } from './local/paystack/transfer/paystack.provider';
+import { FlutterwaveProvider } from './local/flutterwave/transfer/flutterwave.provider';
 
 export class ProviderFactory {
         static getProvider(type: PaymentProvider, secretKey: string, publicKey?: string): IPaymentProvider {

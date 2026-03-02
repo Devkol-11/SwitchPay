@@ -1,5 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { UnauthorizedError } from '../core/merchant/merchant.errors';
+import { UnauthorizedError } from '../core/merchant/merchant.errors.js';
+import { config } from '../infra/env/env.js';
+
 import jwt from 'jsonwebtoken';
 
 declare module 'fastify' {
@@ -11,7 +13,7 @@ declare module 'fastify' {
         }
 }
 
-export async function authenticateMerchant(request: FastifyRequest, reply: FastifyReply) {
+export async function authenticateMerchant(request: FastifyRequest, _reply: FastifyReply) {
         try {
                 const authHeader = request.headers.authorization;
                 if (!authHeader?.startsWith('Bearer ')) {
@@ -22,6 +24,7 @@ export async function authenticateMerchant(request: FastifyRequest, reply: Fasti
                 const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET!) as {
                         id: string;
                         email: string;
+                        role: string;
                 };
 
                 request.merchant = {

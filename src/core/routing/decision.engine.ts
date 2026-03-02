@@ -1,5 +1,5 @@
 import { PaymentProvider } from '../../../generated/prisma';
-import { BinService } from './bin.service';
+import { BinService } from './bin/bin.service.js';
 
 interface ProviderConfig {
         provider: PaymentProvider;

@@ -2,6 +2,7 @@ export interface IEvent {
         eventName: string;
         occurredAt: Date;
         data: Record<string, any>;
+        getPayload(): object;
 }
 
 export abstract class BaseEvent implements IEvent {

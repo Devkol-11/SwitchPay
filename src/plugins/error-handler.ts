@@ -1,6 +1,6 @@
 import { FastifyPluginCallback, FastifyError } from 'fastify';
 import fp from 'fastify-plugin';
-import { AppError } from '../utils/app.error';
+import { AppError } from '../utils/app.error.js';
 
 const errorHandler: FastifyPluginCallback = (fastify, opts, done) => {
         fastify.setErrorHandler((error: FastifyError, request, reply) => {

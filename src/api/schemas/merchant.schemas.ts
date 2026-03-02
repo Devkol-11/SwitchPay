@@ -17,6 +17,10 @@ export const LoginMerchantSchema = z.object({
         password: z.string().min(1, { error: 'Password is required' })
 });
 
+export const ForgotPasswordSchema = z.object({
+        email: z.email({ error: 'Invalid email format' })
+});
+
 /**
  * API KEY GENERATION SCHEMA
  */
@@ -41,3 +45,4 @@ export const GenerateApiKeySchema = z.object({
 export type RegisterMerchantInput = z.infer<typeof RegisterMerchantSchema>;
 export type LoginMerchantInput = z.infer<typeof LoginMerchantSchema>;
 export type GenerateApiKeyInput = z.infer<typeof GenerateApiKeySchema>;
+export type ForgotPasswordInput = z.infer<typeof ForgotPasswordSchema>;

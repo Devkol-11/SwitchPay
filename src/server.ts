@@ -1,49 +1,27 @@
 import { createApp } from './app';
-import fastifyEnv from '@fastify/env';
-
-interface AppConfig {
-        PORT: string;
-        DATABASE_URL: string;
-}
-
-declare module 'fastify' {
-        interface FastifyInstance {
-                config: AppConfig;
-        }
-}
+import { config } from './infra/env/env.js';
+import { databaseProvider } from './infra/database/prisma.js';
+import { redisProvider } from './infra/client/redis.js';
 
 async function main() {
-        const app = createApp();
-
-        const schema = {
-                type: 'object',
-                required: ['PORT', 'DATABASE_URL'],
-                properties: {
-                        PORT: { type: 'string', default: '3000' },
-                        DATABASE_URL: { type: 'string' }
-                }
-        };
-
-        const options = {
-                confKey: 'config',
-                schema: schema,
-                dotenv: true
-        };
-
         try {
-                await app.register(fastifyEnv, options);
+                const app = createApp();
 
-                console.log('✅ Environment Loaded');
-                console.log('Database URL:', app.config.DATABASE_URL);
+                console.log('DB_URL: ', config.DATABASE_URL);
+                console.log('JWT_SECRET : ', config.JWT_SECRET);
+                console.log('DB_URL_UNPOOLED : ', config.DATABASE_URL_UNPOOLED);
 
-                const port = Number(app.config.PORT);
+                await databaseProvider.connectDB();
+                // await redisProvider.connect();
 
                 await app.listen({
-                        port: port,
+                        port: config.PORT,
                         host: '0.0.0.0'
                 });
+
+                console.log('SERVER RUNNING ON : ', config.PORT);
         } catch (err) {
-                console.error('❌ Startup Error:', err);
+                console.error('Startup Error:', err);
                 process.exit(1);
         }
 }

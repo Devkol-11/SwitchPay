@@ -1,11 +1,11 @@
 import Stripe from 'stripe';
-import { PaymentProvider, PaymentStatus } from '../../../generated/prisma';
+import { PaymentProvider, PaymentStatus } from '../../../../generated/prisma';
 import {
         CreatePaymentParams,
         IPaymentProvider,
         ProviderResponse,
         WebhookResult
-} from '../base/provider.interface';
+} from '../../base/provider.interface.js';
 
 export class StripeProvider implements IPaymentProvider {
         readonly name: PaymentProvider = PaymentProvider.STRIPE;

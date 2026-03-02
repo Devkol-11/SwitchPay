@@ -1,8 +1,8 @@
 import { PaymentStatus, PaymentProvider } from '../../../generated/prisma';
-import { DecisionEngine } from '../routing/decision.engine';
-import { ProviderFactory } from '../../providers/provider.factory';
-import { decrypt } from '../../utils/encryption';
-import { dbClient } from '../../infra/database/prisma';
+import { DecisionEngine } from '../routing/decision.engine.js';
+import { ProviderFactory } from '../../providers/provider.factory.js';
+import { decrypt } from '../../utils/encryption.js';
+import { dbClient } from '../../infra/database/prisma.js';
 
 export class PaymentOrchestrator {
         private decisionEngine = new DecisionEngine();
@@ -72,7 +72,7 @@ export class PaymentOrchestrator {
                                         );
                                         continue; // Skip to the next provider in the route
                                 }
-                                const secretKey = decrypt(config!.encryptedApiKey); 
+                                const secretKey = decrypt(config!.encryptedApiKey);
 
                                 let publicKey: string | undefined = config.encryptedPublicKey
                                         ? decrypt(config.encryptedPublicKey)

@@ -4,8 +4,9 @@ import {
         CreatePaymentParams,
         ProviderResponse,
         WebhookResult
-} from '../base/provider.interface';
-import { PaymentProvider, PaymentStatus } from '../../../generated/prisma';
+} from '../../../base/provider.interface.js';
+
+import { PaymentProvider, PaymentStatus } from '../../../../../generated/prisma';
 
 export class FlutterwaveProvider implements IPaymentProvider {
         readonly name = PaymentProvider.FLUTTERWAVE;
@@ -20,7 +21,7 @@ export class FlutterwaveProvider implements IPaymentProvider {
                         const response = await this.flw.Transaction.initialize({
                                 amount: params.amount,
                                 currency: params.currency,
-                                tx_ref: params.reference, // Our internal ID
+                                tx_ref: params.reference,
                                 redirect_url: 'https://your-site.com/callback',
                                 customer: {
                                         email: params.email
@@ -48,7 +49,6 @@ export class FlutterwaveProvider implements IPaymentProvider {
         }
 
         async verifyPayment(providerReference: string): Promise<ProviderResponse> {
-                // Flutterwave verification uses their internal transaction ID
                 const response = await this.flw.Transaction.verify({ id: providerReference });
 
                 return {
@@ -70,8 +70,6 @@ export class FlutterwaveProvider implements IPaymentProvider {
         }
 
         async verifyWebhook(payload: any, signature: string, secret: string): Promise<WebhookResult> {
-                // Flutterwave sends a secret hash in the 'verif-hash' header
-                // We compare it to the one we set in their dashboard
                 const internalSecretHash = process.env.FLW_WEBHOOK_SECRET_HASH;
 
                 if (signature !== internalSecretHash) {

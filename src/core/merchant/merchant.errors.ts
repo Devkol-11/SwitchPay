@@ -1,5 +1,5 @@
-import { AppError } from '../../utils/app.error';
-import { HTTP_STATUS } from '../../utils/http.statusCodes';
+import { AppError } from '../../utils/app.error.js';
+import { HTTP_STATUS } from '../../utils/http.statusCodes.js';
 
 export class UnauthorizedError extends AppError {
         constructor(message = 'Unauthorized access') {

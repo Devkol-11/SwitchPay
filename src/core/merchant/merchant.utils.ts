@@ -1,5 +1,7 @@
 import bcrypt from 'bcryptjs';
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash, randomBytes, randomInt } from 'node:crypto';
+import jwt from 'jsonwebtoken';
+import { config } from '../../infra/env/env.js';
 
 export class MerchantUtils {
         private static readonly SALT_ROUNDS = 12;
@@ -30,5 +32,27 @@ export class MerchantUtils {
 
         static generateWebhookSecret(): string {
                 return `whsec_${randomBytes(24).toString('hex')}`;
+        }
+
+        static generateAccessToken(data: { id: string; email: string; role: string }) {
+                return jwt.sign(data, config.JWT_SECRET);
+        }
+
+        static generateRefreshTokenWithExpiry() {
+                const refreshToken = randomBytes(40).toString('hex');
+                const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+                return {
+                        refreshToken,
+                        expiresAt
+                };
+        }
+
+        static generateSecureOtp() {
+                const otp = randomInt(0, 1000000).toString().padStart(6, '0');
+                const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+                return {
+                        otp,
+                        expiresAt
+                };
         }
 }
